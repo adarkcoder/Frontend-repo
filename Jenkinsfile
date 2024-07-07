@@ -30,11 +30,8 @@ pipeline {
             steps {
                 // Run Maven clean and test phases with error handling
                 dir('FullStackAppFrontEnd') {
-                    script {
-                        def status = sh(script: 'npm test', returnStatus: true)
-                        if (status != 0) {
-                            echo "Unit tests failed, but continuing the pipeline. "
-                        }
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        sh 'npm test'
                     }
                 }
             }
