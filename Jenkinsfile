@@ -53,7 +53,7 @@ pipeline {
                                   -Dsonar.projectName=Frontend-project \
                                   -Dsonar.sources=src/ \
                                   -Dsonar.tests=src/ \
-                                  -Dsonar.test.inclusions= src/**/*.test.js \
+                                  -Dsonar.test.inclusions=src/**/*.test.js \
                                   -Dsonar.clover.reportPaths=coverage/clover.xml \
                                   -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info '''      
                         }
