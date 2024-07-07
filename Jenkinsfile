@@ -127,7 +127,13 @@ pipeline {
 
                 stage('k8s Rollout') {
                     steps {
-                        sh "k8RolloutStage.sh"
+                        script {
+                                withKubeCredentials(kubectlCredentials: [[caCertificate: '', clusterName: '', contextName: '', credentialsId: 'kube-config', namespace: '', serverUrl: '']]) {
+                                    withCredentials([usernamePassword(credentialsId: AWS_CREDENTIALS_ID, usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                                        sh 'pwd'
+                                    }
+                                }
+                            }
                     }
                 }
             }
