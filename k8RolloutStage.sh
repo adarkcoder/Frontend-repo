@@ -12,3 +12,5 @@ then
 else
 	echo "Deployment ${DEPLOYMENT_NAME} Rollout is Success"
 fi
+
+kubectl -n default rollout restart deploy ${DEPLOYMENT_NAME}
