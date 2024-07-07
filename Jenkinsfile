@@ -9,6 +9,7 @@ pipeline {
         AWS_CREDENTIALS_ID = 'aws-credentials-id'
         DOCKER_IMAGE = 'public.ecr.aws/e8n4i2w8/frontend:latest'
         AWS_REGION = 'us-east-1'
+        DEPLOYMENT_NAME = "frontend"
     }
 
     stages {
@@ -92,21 +93,45 @@ pipeline {
             }
         }
         
-        stage('Deploy to Kubernetes') {
-            steps {
-                dir('Frontend') {
-                    script {
-                        // Use kubeconfig to configure Kubernetes context
-                        withKubeCredentials(kubectlCredentials: [[caCertificate: '', clusterName: '', contextName: '', credentialsId: 'kube-config', namespace: '', serverUrl: '']]) {
-                            withCredentials([usernamePassword(credentialsId: AWS_CREDENTIALS_ID, usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-                                sh 'kubectl apply -f .'
-                                sh 'kubectl rollout restart deploy frontend'
+        // stage('Deploy to Kubernetes') {
+        //     steps {
+        //         dir('Frontend') {
+        //             script {
+        //                 // Use kubeconfig to configure Kubernetes context
+        //                 withKubeCredentials(kubectlCredentials: [[caCertificate: '', clusterName: '', contextName: '', credentialsId: 'kube-config', namespace: '', serverUrl: '']]) {
+        //                     withCredentials([usernamePassword(credentialsId: AWS_CREDENTIALS_ID, usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+        //                         sh 'kubectl apply -f .'
+        //                         sh 'kubectl rollout restart deploy ${frontend}'
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //      }
+        // }
+
+        parallel {
+                stage('Deploy to Kubernetes') {
+                    steps {
+                        dir('Frontend') {
+                            script {
+                                withKubeCredentials(kubectlCredentials: [[caCertificate: '', clusterName: '', contextName: '', credentialsId: 'kube-config', namespace: '', serverUrl: '']]) {
+                                    withCredentials([usernamePassword(credentialsId: AWS_CREDENTIALS_ID, usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                                        sh 'kubectl apply -f .'
+                                        sh 'kubectl rollout restart deploy ${DEPLOYMENT_NAME}'
+                                    }
+                                }
                             }
                         }
                     }
                 }
-             }
-        }
+
+                stage('k8s Rollout') {
+                    steps {
+                        sh "k8RolloutStage.sh"
+                    }
+                }
+            }
+        
     }
 
     post {
