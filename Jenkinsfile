@@ -108,8 +108,8 @@ pipeline {
         //         }
         //      }
         // }
-
-        parallel {
+       stage('Deploy and Rollout') {
+            parallel {
                 stage('Deploy to Kubernetes') {
                     steps {
                         dir('Frontend') {
@@ -131,6 +131,7 @@ pipeline {
                     }
                 }
             }
+       }
         
     }
 
