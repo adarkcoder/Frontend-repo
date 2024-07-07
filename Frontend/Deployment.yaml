@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      initContainers:
+      - name: init-nginx
+        image: busybox
+        volumeMounts:
+        - name: tmp-nginx
+          mountPath: /tmp/nginx
+      containers:
+      - name: frontend-container
+        image: public.ecr.aws/e8n4i2w8/frontend:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080 
+        securityContext:  
+          privileged: false 
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false       
+          runAsUser: 101 
+          runAsNonRoot: true
+        resources:
+          limits:
+            memory: "500Mi"
+            cpu: "1000m"
+          requests:
+            memory: "225Mi"
+            cpu: "100m"
+        volumeMounts:
+        - name: var-cache
+          mountPath: /var/cache/nginx
+        - name: tmp-nginx
+          mountPath: /tmp/nginx
+
+        # readinessProbe:
+        #   httpGet:
+        #     scheme: HTTP
+        #     path: /health
+        #     port: 80
+        #   initialDelaySeconds: 15
+        #   periodSeconds: 5
+        # livenessProbe:
+        #   successThreshold: 1
+        #   failureThreshold: 5
+        #   periodSeconds: 15 
+        #   initialDelaySeconds: 20
+        #   timeoutSeconds: 5
+        #   httpGet:
+        #     path: /health
+        #     port: 80
+        #     scheme: HTTP
+      # nodeSelector:
+      #   application: "frontend"
+      # tolerations:
+      # - key: "application"
+      #   operator: "Equal"
+      #   value: "frontend"
+      #   effect: "NoSchedule"
+      volumes:
+      - name: var-cache
+        emptyDir: {}
+      - name: tmp-nginx
+        emptyDir: {}
+      
+    
